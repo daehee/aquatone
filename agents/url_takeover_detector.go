@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/michenriksen/aquatone/core"
+	"github.com/zemnmez/aquatone/core"
 )
 
 type URLTakeoverDetector struct {

@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/michenriksen/aquatone/core"
+	"github.com/zemnmez/aquatone/core"
 )
 
 type TCPPortScanner struct {

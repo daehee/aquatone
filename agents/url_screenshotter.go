@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
-	"github.com/michenriksen/aquatone/core"
+	"github.com/zemnmez/aquatone/core"
 )
 
 type URLScreenshotter struct {
