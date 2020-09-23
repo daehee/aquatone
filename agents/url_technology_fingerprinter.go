@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/daehee/wap"
 	"github.com/daehee/aquatone/core"
+	"github.com/daehee/wap"
 )
 
 type FingerprintRegexp struct {
@@ -173,7 +174,7 @@ func (a *URLTechnologyFingerprinter) fingerprintHeaders(page *core.Page) []Finge
 	for _, header := range page.Headers {
 		for _, fingerprint := range a.fingerprints {
 			for name, pattern := range fingerprint.HeaderFingerprints {
-				if name != header.Name {
+				if strings.ToLower(name) != strings.ToLower(header.Name) {
 					continue
 				}
 
