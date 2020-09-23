@@ -119,7 +119,6 @@ func main() {
 	agents.NewURLPageTitleExtractor().Register(sess)
 	agents.NewURLScreenshotter().Register(sess)
 	agents.NewURLTechnologyFingerprinter().Register(sess)
-	agents.NewURLTakeoverDetector().Register(sess)
 
 	reader := bufio.NewReader(os.Stdin)
 	var targets []string
