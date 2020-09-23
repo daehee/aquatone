@@ -1,4 +1,4 @@
-module github.com/zemnmez/aquatone
+module github.com/daehee/aquatone
 
 go 1.15
 
