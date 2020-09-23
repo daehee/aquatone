@@ -73,6 +73,7 @@ func (a URLScreenshotter) getOpts() (options []chromedp.ExecAllocatorOption) {
 	if *a.session.Options.ChromePath != "" {
 		options = append(options, chromedp.ExecPath(*a.session.Options.ChromePath))
 	}
+	options = append(options, chromedp.Headless)
 	// options = append(options, chromedp.DisableGPU)
 	return
 }
