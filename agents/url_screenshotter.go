@@ -70,33 +70,28 @@ func (a URLScreenshotter) getOpts() (options []chromedp.ExecAllocatorOption) {
 	if *a.session.Options.Proxy != "" {
 		options = append(options, chromedp.ProxyServer(*a.session.Options.Proxy))
 	}
-
 	if *a.session.Options.ChromePath != "" {
 		options = append(options, chromedp.ExecPath(*a.session.Options.ChromePath))
 	}
-
+	// options = append(options, chromedp.DisableGPU)
 	return
-}
-
-// execAllocator turns a.getOpts() (the chrome instance allocator options) into a derivative context.Context
-func (a URLScreenshotter) execAllocator(parent context.Context) (context.Context, context.CancelFunc) {
-	return chromedp.NewExecAllocator(parent, a.getOpts()...)
 }
 
 func (a *URLScreenshotter) screenshotPage(page *core.Page) {
 	filePath := fmt.Sprintf("screenshots/%s.png", page.BaseFilename())
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.session.Options.ScreenshotTimeout)*time.Millisecond)
-	ctx, cancel = a.execAllocator(ctx)
-	ctx, cancel = chromedp.NewContext(ctx)
-
+	defer cancel()
+	allocCtx, cancel := chromedp.NewExecAllocator(ctx, a.getOpts()...)
+	defer cancel()
+	taskCtx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
 	var pic []byte
-	if err := chromedp.Run(ctx, chromedp.Tasks{
+	if err := chromedp.Run(taskCtx, chromedp.Tasks{
+		chromedp.EmulateViewport(1440, 900),
 		chromedp.Navigate(page.URL),
-		chromedp.WaitReady("body", chromedp.ByQuery),
-		chromedp.Screenshot("body", &pic, chromedp.NodeVisible, chromedp.ByQuery),
+		chromedp.CaptureScreenshot(&pic),
 	}); err != nil {
 		a.session.Out.Debug("%s Error: %v\n", a.ID, err)
 		a.session.Stats.IncrementScreenshotFailed()
