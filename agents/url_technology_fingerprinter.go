@@ -2,12 +2,12 @@ package agents
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/daehee/wap"
 	"github.com/zemnmez/aquatone/core"
 )
 
@@ -16,14 +16,14 @@ type FingerprintRegexp struct {
 }
 
 type Fingerprint struct {
-	Name               string            `json:"name"`
-	Categories         []string          `json:"categories"`
-	Implies            []string          `json:"implies"`
-	Website            string            `json:"website"`
-	Headers            map[string]string `json:"headers"`
-	HTML               []string          `json:"html"`
-	Script             []string          `json:"script"`
-	Meta               map[string]string `json:"meta"`
+	Name               string
+	Categories         []string
+	Implies            []string
+	Website            string
+	Headers            map[string]string
+	HTML               []string
+	Script             []string
+	Meta               map[string]string
 	HeaderFingerprints map[string]FingerprintRegexp
 	HTMLFingerprints   []FingerprintRegexp
 	ScriptFingerprints []FingerprintRegexp
@@ -99,12 +99,34 @@ func (a *URLTechnologyFingerprinter) Register(s *core.Session) error {
 }
 
 func (a *URLTechnologyFingerprinter) loadFingerprints() {
-	fingerprints, err := a.session.Asset("static/wappalyzer_fingerprints.json")
+	wapFile := "wappalyzer.json"
+	_, err := os.Stat(wapFile)
+	if os.IsNotExist(err) {
+		a.session.Out.Debug("Wappalyzer fingerprints file doesn't exist, downloading...\n")
+		if err := wap.DownloadSource(wapFile); err != nil {
+			a.session.Out.Fatal("Can't download Wappalyzer fingerprints file\n")
+			os.Exit(1)
+		}
+	}
+	w, err := wap.Fingerprints(wapFile)
 	if err != nil {
-		a.session.Out.Fatal("Can't read technology fingerprints file\n")
+		a.session.Out.Fatal("Can't read Wappalyzer fingerprints file\n")
 		os.Exit(1)
 	}
-	json.Unmarshal(fingerprints, &a.fingerprints)
+
+	for _, v := range w.Fingerprints {
+		a.fingerprints = append(a.fingerprints, Fingerprint{
+			Name:       v.Name,
+			Categories: v.Categories,
+			Implies:    v.Implies,
+			Website:    v.Website,
+			Headers:    v.Headers,
+			HTML:       v.HTML,
+			Script:     v.Scripts,
+			Meta:       v.Meta,
+		})
+	}
+
 	for i, _ := range a.fingerprints {
 		a.fingerprints[i].LoadPatterns()
 	}
