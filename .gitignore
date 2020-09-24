@@ -9,3 +9,4 @@ aquatone_urls.txt
 aquatone_session.json
 debug.log
 .idea/*
+.DS_Store
