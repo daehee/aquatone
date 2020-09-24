@@ -11,7 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -98,7 +97,6 @@ func (s *Session) Start() {
 	s.PageSimilarityClusters = make(map[string][]string)
 	s.initStats()
 	s.initLogger()
-	s.initPorts()
 	s.initThreads()
 	s.initEventBus()
 	s.initWaitGroup()
@@ -148,34 +146,6 @@ func (s *Session) initStats() {
 	s.Stats = &Stats{
 		StartedAt: time.Now(),
 	}
-}
-
-func (s *Session) initPorts() {
-	var ports []int
-	switch *s.Options.Ports {
-	case "small":
-		ports = SmallPortList
-	case "", "medium", "default":
-		ports = MediumPortList
-	case "large":
-		ports = LargePortList
-	case "xlarge", "huge":
-		ports = XLargePortList
-	default:
-		for _, p := range strings.Split(*s.Options.Ports, ",") {
-			port, err := strconv.Atoi(strings.TrimSpace(p))
-			if err != nil {
-				s.Out.Fatal("Invalid port range given\n")
-				os.Exit(1)
-			}
-			if port < 1 || port > 65535 {
-				s.Out.Fatal("Invalid port given: %v\n", port)
-				os.Exit(1)
-			}
-			ports = append(ports, port)
-		}
-	}
-	s.Ports = ports
 }
 
 func (s *Session) initLogger() {

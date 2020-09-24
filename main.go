@@ -7,13 +7,12 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/daehee/aquatone/agents"
 	"github.com/daehee/aquatone/core"
 	"github.com/daehee/aquatone/parsers"
+	"github.com/google/uuid"
 )
 
 var (
@@ -112,8 +111,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	agents.NewTCPPortScanner().Register(sess)
-	agents.NewURLPublisher().Register(sess)
 	agents.NewURLRequester().Register(sess)
 	agents.NewURLHostnameResolver().Register(sess)
 	agents.NewURLPageTitleExtractor().Register(sess)
@@ -123,20 +120,11 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	var targets []string
 
-	if *sess.Options.Nmap {
-		parser := parsers.NewNmapParser()
-		targets, err = parser.Parse(reader)
-		if err != nil {
-			sess.Out.Fatal("Unable to parse input as Nmap/Masscan XML: %s\n", err)
-			os.Exit(1)
-		}
-	} else {
-		parser := parsers.NewRegexParser()
-		targets, err = parser.Parse(reader)
-		if err != nil {
-			sess.Out.Fatal("Unable to parse input.\n")
-			os.Exit(1)
-		}
+	parser := parsers.NewRegexParser()
+	targets, err = parser.Parse(reader)
+	if err != nil {
+		sess.Out.Fatal("Unable to parse input.\n")
+		os.Exit(1)
 	}
 
 	if len(targets) == 0 {
@@ -146,19 +134,12 @@ func main() {
 
 	sess.Out.Important("Targets    : %d\n", len(targets))
 	sess.Out.Important("Threads    : %d\n", *sess.Options.Threads)
-	sess.Out.Important("Ports      : %s\n", strings.Trim(strings.Replace(fmt.Sprint(sess.Ports), " ", ", ", -1), "[]"))
 	sess.Out.Important("Output dir : %s\n\n", *sess.Options.OutDir)
 
 	sess.EventBus.Publish(core.SessionStart)
 
 	for _, target := range targets {
-		if isURL(target) {
-			if hasSupportedScheme(target) {
-				sess.EventBus.Publish(core.URL, target)
-			}
-		} else {
-			sess.EventBus.Publish(core.Host, target)
-		}
+		sess.EventBus.Publish(core.URL, target)
 	}
 
 	time.Sleep(1 * time.Second)
